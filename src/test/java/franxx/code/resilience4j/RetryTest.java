@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 @Slf4j
 public class RetryTest {
 
@@ -18,10 +20,13 @@ public class RetryTest {
     @Test
     void createNewRetry() {
 
-        Retry mee = Retry.ofDefaults("mee");
+        assertThrows(IllegalArgumentException.class, () -> {
 
-        Runnable runnable = Retry.decorateRunnable(mee, () -> callMe());
-        runnable.run();
+            Retry mee = Retry.ofDefaults("mee");
+
+            Runnable runnable = Retry.decorateRunnable(mee, () -> callMe());
+            runnable.run();
+        });
 
     }
 
@@ -35,9 +40,11 @@ public class RetryTest {
     @Test
     void retrySupplier() {
 
-        Retry mee = Retry.ofDefaults("mee");
+        assertThrows(IllegalArgumentException.class, () -> {
+            Retry mee = Retry.ofDefaults("mee");
+            Supplier<String> stringSupplier = Retry.decorateSupplier(mee, () -> helloCall());
 
-        Supplier<String> stringSupplier = Retry.decorateSupplier(mee, () -> helloCall());
-        stringSupplier.get();
+            stringSupplier.get();
+        });
     }
 }
