@@ -2,6 +2,7 @@ package franxx.code.resilience4j;
 
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -39,6 +40,31 @@ public class RateLimiterTest {
                 .build();
 
         RateLimiter mee = RateLimiter.of("mee", config);
+
+        Assertions.assertThrows(RequestNotPermitted.class, () -> {
+
+            for (int i = 0; i < 10_000; i++) {
+
+                RateLimiter.decorateRunnable(mee, () -> {
+                    long get = counter.incrementAndGet();
+                    log.info("value {}", get);
+                }).run();
+            }
+        });
+    }
+    @Test
+    void rateLimitRegistry() {
+
+        RateLimiterConfig config = RateLimiterConfig.custom()
+                .limitForPeriod(100)
+                .limitRefreshPeriod(Duration.ofSeconds(30))
+                .timeoutDuration(Duration.ofSeconds(2))
+                .build();
+
+        RateLimiterRegistry rateLimiterRegistry = RateLimiterRegistry.ofDefaults();
+        rateLimiterRegistry.addConfiguration("conf", config);
+
+        RateLimiter mee = rateLimiterRegistry.rateLimiter("mee", "conf");
 
         Assertions.assertThrows(RequestNotPermitted.class, () -> {
 
